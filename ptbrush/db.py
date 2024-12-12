@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File    :   db.py
 @Time    :   2024/11/04 09:59:51
 @Author  :   huihuidehui 
 @Version :   1.0
 @Contact :   kanhuihui@163.com
-'''
+"""
 
 # here put the import lib
 from datetime import datetime, timedelta
 from pathlib import Path
 import peewee
 
-database = peewee.SqliteDatabase(
-    str(Path(__file__).parent / 'data'/'ptbrush.db'))
+database = peewee.SqliteDatabase(str(Path(__file__).parent / "data" / "ptbrush.db"))
 
 
 class BaseModel(peewee.Model):
@@ -41,13 +40,11 @@ class Torrent(BaseModel):
 
     class Meta:
         # torrend_id和site联合唯一索引
-        indexes = (
-            (('torrent_id', 'site'), True),
-        )
+        indexes = ((("torrent_id", "site"), True),)
 
 
 class BrushTorrent(BaseModel):
-    torrent = peewee.ForeignKeyField(Torrent, backref='brushes')
+    torrent = peewee.ForeignKeyField(Torrent, backref="brushes")
     up_total_size = peewee.BigIntegerField(default=0)  # 上传总大小
     upspeed = peewee.IntegerField(default=0)  # 当前上传速度
 
@@ -56,8 +53,8 @@ class BrushTorrent(BaseModel):
 
 
 class QBStatus(BaseModel):
-    dlspeed = peewee.IntegerField(default=0)    # 当前下载速度
-    upspeed = peewee.IntegerField(default=0)    # 当前上传速度
+    dlspeed = peewee.IntegerField(default=0)  # 当前下载速度
+    upspeed = peewee.IntegerField(default=0)  # 当前上传速度
 
     up_total_size = peewee.BigIntegerField(default=0)  # 上传总大小
     dl_total_size = peewee.BigIntegerField(default=0)  # 下载总大小

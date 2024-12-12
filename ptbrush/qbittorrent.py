@@ -24,19 +24,20 @@ class QBitorrentTorrent(BaseModel):
     torrent_id: str
     completed: bool = False  # 是否下载完成
     free_end_time: datetime
-    upspeed: int     # 上传速度 字节
+    upspeed: int  # 上传速度 字节
     up_total_size: int
     dl_total_size: int
     dlspeed: int
-    hash:str=""
-    size:int=0
+    hash: str = ""
+    size: int = 0
+
 
 class QBittorrentStatus(BaseModel):
     dl_total_size: int
     up_total_size: int
     upspeed: int
     dlspeed: int
-    free_space_size:int
+    free_space_size: int
 
 
 class QBittorrent:
@@ -44,8 +45,6 @@ class QBittorrent:
     def close(self):
         self.qb.auth_log_out()
 
-    
-    
     def __init__(self, qb_url: str, username: str, password: str):
         self.qb_url = qb_url
         self.qb = qbittorrentapi.Client(
@@ -60,13 +59,13 @@ class QBittorrent:
     @property
     def status(self) -> QBittorrentStatus:
         result = self.qb.sync_maindata().server_state
-        
+
         return QBittorrentStatus(
             dl_total_size=result.alltime_dl,
             up_total_size=result.alltime_ul,
-            free_space_size = result.free_space_on_disk,
+            free_space_size=result.free_space_on_disk,
             upspeed=result.up_info_speed,
-            dlspeed=result.dl_info_speed
+            dlspeed=result.dl_info_speed,
         )
 
     @property
@@ -74,33 +73,34 @@ class QBittorrent:
         # return []
         result = []
         for i in self.qb.torrents_info(category=self.category).data:
-            torrent_name = i.get('name')
+            torrent_name = i.get("name")
             site, torrent_id, end_time = re.search(
-                r'__meta\.(.*?)\.(\d+)\.endTime\.(.*)', torrent_name).groups()
+                r"__meta\.(.*?)\.(\d+)\.endTime\.(.*)", torrent_name
+            ).groups()
             end_time = datetime.strptime(end_time, "%Y-%m-%d-%H:%M:%S")
-            up_total_size = i.get('uploaded') if i.get('uploaded') else 0
-            upspeed = i.get('upspeed') if i.get('upspeed') else 0
-            dl_total_size = i.get('downloaded') if i.get('downloaded') else 0
-            dlspeed = i.get('dlspeed') if i.get('dlspeed') else 0
-            completed = i.get('completion_on') > 0
-            torrent_hash = i.get('hash')
-            size = i.get('size', 0)
-            result.append(QBitorrentTorrent(
-                hash=torrent_hash,
-                name=torrent_name,
-                site=site,
-                torrent_id=torrent_id,
-                upspeed=upspeed,
-                up_total_size=up_total_size,
-                dl_total_size=dl_total_size,
-                dlspeed=dlspeed,
-                free_end_time=end_time,
-                completed=completed,
-                size=size
-            ))
+            up_total_size = i.get("uploaded") if i.get("uploaded") else 0
+            upspeed = i.get("upspeed") if i.get("upspeed") else 0
+            dl_total_size = i.get("downloaded") if i.get("downloaded") else 0
+            dlspeed = i.get("dlspeed") if i.get("dlspeed") else 0
+            completed = i.get("completion_on") > 0
+            torrent_hash = i.get("hash")
+            size = i.get("size", 0)
+            result.append(
+                QBitorrentTorrent(
+                    hash=torrent_hash,
+                    name=torrent_name,
+                    site=site,
+                    torrent_id=torrent_id,
+                    upspeed=upspeed,
+                    up_total_size=up_total_size,
+                    dl_total_size=dl_total_size,
+                    dlspeed=dlspeed,
+                    free_end_time=end_time,
+                    completed=completed,
+                    size=size,
+                )
+            )
         return result
-
-
 
     def _create_category(self, category):
         """
@@ -136,17 +136,14 @@ class QBittorrent:
         )
         return res == "Ok."
 
-    
-    def cancel_download(self, torrent_hash:str):
+    def cancel_download(self, torrent_hash: str):
         """
         根据种子hash值，取消种子下载，但已下载的文件继续做种
         """
         files = self.get_torrent_files(torrent_hash)
-        file_ids = [file['index'] for file in files]
+        file_ids = [file["index"] for file in files]
         self.set_no_download_files(torrent_hash, file_ids)
         # self.qb.torrents_delete(delete_files=True, torrent_hashes=[torrent_hash])
-    
-   
 
     def get_torrent_files(self, hash: str) -> List[dict]:
         """

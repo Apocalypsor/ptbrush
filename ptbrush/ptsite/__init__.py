@@ -17,13 +17,19 @@ from model import Torrent
 
 class BaseSiteSpider:
 
-    def __init__(self, cookie: str, headers: List[HeaderParam] = [], options: OptionParam = OptionParam()):
+    def __init__(
+        self,
+        cookie: str,
+        headers: List[HeaderParam] = [],
+        options: OptionParam = OptionParam(),
+    ):
         self.options = options
         self.cookie = cookie
         # self.headers = headers
         self.headers = {
             "accept": "*/*",
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/130.0.0.0 Safari/537.36",
         }
         for i in headers:
             self.headers[i.key] = i.value
@@ -37,7 +43,7 @@ class BaseSiteSpider:
                     headers=self.headers,
                     cookies=self.cookie,
                     data=data,
-                    timeout=(30,30)
+                    timeout=(30, 30),
                 )
                 return response
             except:
@@ -58,7 +64,13 @@ class TorrentFetch:
 
     SITE_SPIDER_MAP = {"M-Team": MTeamSpider}
 
-    def __init__(self, site: str, cookie: str, headers: List[HeaderParam] = [], options: OptionParam = OptionParam()):
+    def __init__(
+        self,
+        site: str,
+        cookie: str,
+        headers: List[HeaderParam] = [],
+        options: OptionParam = OptionParam(),
+    ):
         self.site = site
         self.options = options
         self.cookie = cookie
@@ -68,7 +80,8 @@ class TorrentFetch:
             raise ValueError(f"Unknown site: {self.site}")
 
         self._spider_class: BaseSiteSpider = spider_class(
-            self.cookie, self.headers, self.options)
+            self.cookie, self.headers, self.options
+        )
 
     @property
     def free_torrents(self) -> Generator[Torrent, Torrent, Torrent]:

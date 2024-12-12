@@ -8,12 +8,13 @@
 """
 
 
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 from time import sleep
 from typing import Generator
 
 from loguru import logger
+
 from model import Torrent
 from ptsite import BaseSiteSpider
 
@@ -25,40 +26,10 @@ class MTeamSpider(BaseSiteSpider):
     TORRENT_API = "api/torrent/genDlToken"
     PAGE_SIZE = 200
     BODYS = [
-        # 电影最新
-        {
-            "categories": [],
-            "mode": "movie",
-            "visible": 1,
-            "pageNumber": 1,
-            "pageSize": 100,
-            "sortDirection": "DESC",
-            "sortField": "CREATED_DATE",
-        },
         # 成人最新
         {
             "categories": [],
             "mode": "adult",
-            "visible": 1,
-            "pageNumber": 1,
-            "pageSize": 100,
-            "sortDirection": "DESC",
-            "sortField": "CREATED_DATE",
-        },
-        # 电视最新
-        {
-            "categories": [],
-            "mode": "tvshow",
-            "visible": 1,
-            "pageNumber": 1,
-            "pageSize": 100,
-            "sortDirection": "DESC",
-            "sortField": "CREATED_DATE",
-        },
-        # # 综合最新
-        {
-            "categories": [],
-            "mode": "normal",
             "visible": 1,
             "pageNumber": 1,
             "pageSize": 100,
@@ -97,21 +68,22 @@ class MTeamSpider(BaseSiteSpider):
             data = json.loads(text).get("data", {}).get("data")
             if data:
                 for item in data:
-                    # if item.get("status").get("discount") != discount:
-                    #     # mteam的接口不一定靠谱
-                    #     continue
                     if self._is_free_torrent(item):
                         yield self._parse_torrent(item)
             sleep(3)
+
     def _is_free_torrent(self, item: dict) -> bool:
         """
         规则如下：
         1. discount = FREE or _2X_FREE
-        2. toppingLevel = 1
+        2. toppingLevel != 0
         """
         if item.get("status").get("discount") in ["FREE", "_2X_FREE"]:
             return True
-        if not self.options.free_only and item.get("status").get("toppingLevel") == "1":
+        if (
+            not self.options.free_only
+            and not item.get("status").get("toppingLevel") == "0"
+        ):
             return True
         return False
 
@@ -122,7 +94,7 @@ class MTeamSpider(BaseSiteSpider):
                 free_end_time = datetime.strptime(
                     item.get("status").get("discountEndTime"), "%Y-%m-%d %H:%M:%S"
                 )
-        if item.get("status").get("toppingLevel") == "1":
+        if not item.get("status").get("toppingLevel") == "0":
             if item.get("status").get("toppingEndTime"):
                 free_end_time = datetime.strptime(
                     item.get("status").get("toppingEndTime"), "%Y-%m-%d %H:%M:%S"
@@ -138,7 +110,7 @@ class MTeamSpider(BaseSiteSpider):
                 item.get("createdDate"), "%Y-%m-%d %H:%M:%S"
             ),
             free_end_time=free_end_time,
-            site=self.NAME
+            site=self.NAME,
         )
 
         return torrent
