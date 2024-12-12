@@ -36,6 +36,13 @@ class MTeamSpider(BaseSiteSpider):
             "sortDirection": "DESC",
             "sortField": "CREATED_DATE",
         },
+        {
+            "categories": [],
+            "mode": "adult",
+            "visible": 1,
+            "pageNumber": 1,
+            "pageSize": 100,
+        },
         # 排行榜 下载数最多
         {
             "categories": [],
