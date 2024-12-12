@@ -43,6 +43,8 @@ def main():
     )
     logger.info(f"开始运行，稍后你可以在日志文件中查看日志，观察运行情况...")
     logger.info("开始首次刷种子...")
+    tasks.fetch_qb_status()
+    tasks.fetch_qb_torrents()
     tasks.brush()
     logger.info("首次刷种子完成，开始运行定时任务...")
     scheduler.start()
